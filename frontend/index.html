@@ -14,9 +14,11 @@
             <input type="text" id="username1" placeholder="Enter username 1">
             <label for="username2">Username 2:</label>
             <input type="text" id="username2" placeholder="Enter username 2">
-            <button onclick="getBlendedPlaylist()">Generate Playlist</button>
+            <button id="generatePlaylistBtn">Generate Playlist</button>
         </div>
-        <div id="playlist" class="playlist"></div>
+        <div id="playlist" class="playlist">
+            <ul id="playlistItems"></ul>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
