@@ -6,6 +6,7 @@ const blendLimit = 50; // Number of blended songs to include in the playlist
 const genreScore = new Map();
 const songPriority = new Map();
 
+// fetches top songs using lastfm api: gets song name, artist name, and genre
 const getUserTopTracks = async (username) => {
     const apiUrl = `https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${username}&period=${period}&limit=${limit}&api_key=${apiKey}&format=json`;
 
@@ -15,7 +16,7 @@ const getUserTopTracks = async (username) => {
         return data.toptracks.track.map(track => ({
             name: track.name,
             artist: track.artist.name,
-            genre: track.toptags ? track.toptags.tag.map(tag => tag.name) : [] // Check if toptags exist
+            genre: track.toptags ? track.toptags.tag.map(tag => tag.name) : [] // Check if toptags exist bc some songs dont have a genre tag
         }));
     } catch (error) {
         console.error(`Error fetching top tracks for user ${username}:`, error);
@@ -23,6 +24,26 @@ const getUserTopTracks = async (username) => {
     }
 };
 
+// user score: blend logic
+/*
+Users [user1Songs, user2Songs]
+genreScore list
+SongPriority priority list
+For user in users
+For song in user.userSongs
+        If song.genre is in genreScore
+            Increase score
+        Else add to genreScore
+        //check for related genres?
+For user in users
+    For userSongs of user
+        For otherUser in users
+            For song in otherUser.userSongs
+                If song is in songPriority
+                    Increase score
+                Else add to songPriority
+blendPlaylist of first 50 in songPriority
+*/
 const updateUserScores = (userSongs, isGenreScore) => {
     userSongs.forEach(song => {
         if (isGenreScore) {
@@ -44,6 +65,7 @@ const updateUserScores = (userSongs, isGenreScore) => {
     });
 };
 
+// does the blend using values inputted from html
 const blendPlaylist = async () => {
     try {
         // Get usernames from input fields
