@@ -4,6 +4,7 @@ const limit = 1000; // Number of top tracks to fetch for each user
 const blendLimit = 50; // Number of blended songs to include in the playlist
 
 const genreScore = new Map();
+const artistScore = new Map();
 const songPriority = new Map();
 
 const getUserTopTracks = async (username) => {
@@ -23,22 +24,33 @@ const getUserTopTracks = async (username) => {
     }
 };
 
-const updateUserScores = (userSongs, isGenreScore) => {
+const updateSongScores = (userSongs) => {
     userSongs.forEach(song => {
-        if (isGenreScore) {
-            song.genre.forEach(genre => {
-                if (genreScore.has(genre)) {
-                    genreScore.set(genre, genreScore.get(genre) + 1);
-                } else {
-                    genreScore.set(genre, 1);
-                }
-            });
-        } else {
-            const songKey = `${song.name} - ${song.artist}`;
-            if (songPriority.has(songKey)) {
-                songPriority.set(songKey, songPriority.get(songKey) + 1);
+        // get the genres and score them
+        console.log(song.genre); // genre still not gained
+        song.genre.forEach(genre => {
+            if (genreScore.has(genre)) {
+                genreScore.set(genre, genreScore.get(genre) + 1);
             } else {
-                songPriority.set(songKey, 1);
+                genreScore.set(genre, 1);
+            }
+        });
+        // get the artists and score them
+        if (artistScore.has(song.artist)) {
+            artistScore.set(song.artist, artistScore.get(song.artist) + 1);
+        } else {
+            artistScore.set(song.artist, 1);
+        }
+        // get the songs and score them with the artists and genres
+        const songKey = `${song.name} - ${song.artist}`;
+        if (songPriority.has(songKey)) {
+            songPriority.set(songKey, songPriority.get(songKey) + 3);
+        } else {
+            if (song.genre) {
+                songPriority.set(songKey, artistScore.get(song.artist) + genreScore.get(song.genre) + 1);
+            }
+            else {
+                songPriority.set(songKey, artistScore.get(song.artist) + 1);
             }
         }
     });
@@ -53,17 +65,15 @@ const blendPlaylist = async () => {
         // Fetch top tracks for both users
         const [user1TopTracks, user2TopTracks] = await Promise.all([getUserTopTracks(username1), getUserTopTracks(username2)]);
 
-        // Update genre scores for both users
-        updateUserScores(user1TopTracks, true);
-        updateUserScores(user2TopTracks, true);
-
-        // Update song priorities for both users
-        updateUserScores(user1TopTracks, false);
-        updateUserScores(user2TopTracks, false);
+        // Update song scores for both users
+        updateSongScores(user1TopTracks);
+        updateSongScores(user2TopTracks);
 
         // Sort genre score and song priority maps
-        const sortedGenres = new Map([...genreScore.entries()].sort((a, b) => b[1] - a[1]));
         const sortedSongs = new Map([...songPriority.entries()].sort((a, b) => b[1] - a[1]));
+        console.log(songPriority);
+        console.log(genreScore);
+        console.log(artistScore);
 
         // Get the top blended songs based on song priority
         const blendedSongs = Array.from(sortedSongs.keys()).slice(0, blendLimit);
