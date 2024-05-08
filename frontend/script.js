@@ -14,10 +14,12 @@ const getUserTopTracks = async (username) => {
     try {
         const response = await fetch(apiUrl);
         const data = await response.json();
+        console.log(data.toptracks.track);
         return data.toptracks.track.map(track => ({
             name: track.name,
             artist: track.artist.name,
-            genre: track.toptags ? track.toptags.tag.map(tag => tag.name) : [] // Check if toptags exist bc some songs dont have a genre tag
+            genre: getTrackTopTags(track.artist.name, track.name)
+            //genre: track.toptags ? track.toptags.tag.map(tag => tag.name) : [] // Check if toptags exist bc some songs dont have a genre tag
         }));
     } catch (error) {
         console.error(`Error fetching top tracks for user ${username}:`, error);
@@ -25,11 +27,26 @@ const getUserTopTracks = async (username) => {
     }
 };
 
+const getTrackTopTags = async (artist, track) => {
+    const apiUrl2 = `https://ws.audioscrobbler.com/2.0/?method=track.getTopTags&artist=${artist}&track=${track}&api_key=${apiKey}&format=json`;
+    try {
+        const response = await fetch(apiUrl2);
+        const data = await response.json();
+        console.log(data.toptags);
+        return (data.toptags.tag ? data.toptags.tag.map(tag => tag.name) : []);
+    } catch {
+        return [];
+    }
+}
+
 const updateSongScores = (userSongs) => {
     userSongs.forEach(song => {
         // get the genres and score them
+        console.log("here");
         console.log(song.genre); // genre still not gained
-        song.genre.forEach(genre => {
+        Array.prototype.forEach.call(song.genre, genre => {
+            console.log("here2");
+        //song.genre.forEach(genre => {
             if (genreScore.has(genre)) {
                 genreScore.set(genre, genreScore.get(genre) + 1);
             } else {
