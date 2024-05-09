@@ -15,12 +15,15 @@ const getUserTopTracks = async (username) => {
         const response = await fetch(apiUrl);
         const data = await response.json();
         console.log(data.toptracks.track);
-        return data.toptracks.track.map(track => ({
-            name: track.name,
-            artist: track.artist.name,
-            genre: getTrackTopTags(track.artist.name, track.name)
-            //genre: track.toptags ? track.toptags.tag.map(tag => tag.name) : [] // Check if toptags exist bc some songs dont have a genre tag
+        const tracksWithGenres = await Promise.all(data.toptracks.track.map(async (track) => {
+            const genre = await getTrackTopTags(track.artist.name, track.name);
+            return {
+                name: track.name,
+                artist: track.artist.name,
+                genre: genre
+            };
         }));
+        return tracksWithGenres;
     } catch (error) {
         console.error(`Error fetching top tracks for user ${username}:`, error);
         return [];
@@ -42,30 +45,27 @@ const getTrackTopTags = async (artist, track) => {
 const updateSongScores = (userSongs) => {
     userSongs.forEach(song => {
         // get the genres and score them
-        console.log("here");
-        console.log(song.genre); // genre still not gained
         Array.prototype.forEach.call(song.genre, genre => {
-            console.log("here2");
-        //song.genre.forEach(genre => {
             if (genreScore.has(genre)) {
-                genreScore.set(genre, genreScore.get(genre) + 1);
+                genreScore.set(genre, genreScore.get(genre) + 0.5);
             } else {
                 genreScore.set(genre, 1);
             }
         });
         // get the artists and score them
         if (artistScore.has(song.artist)) {
-            artistScore.set(song.artist, artistScore.get(song.artist) + 1);
+            artistScore.set(song.artist, artistScore.get(song.artist) + 3);
         } else {
             artistScore.set(song.artist, 1);
         }
         // get the songs and score them with the artists and genres
         const songKey = `${song.name} - ${song.artist}`;
         if (songPriority.has(songKey)) {
-            songPriority.set(songKey, songPriority.get(songKey) + 3);
+            songPriority.set(songKey, songPriority.get(songKey) + 5);
         } else {
             if (song.genre) {
-                songPriority.set(songKey, artistScore.get(song.artist) + genreScore.get(song.genre) + 1);
+                const genresScore = song.genre.reduce((totalScore, genre) => totalScore + genreScore.get(genre), 0);
+                songPriority.set(songKey, artistScore.get(song.artist) + genresScore + 1);
             }
             else {
                 songPriority.set(songKey, artistScore.get(song.artist) + 1);
