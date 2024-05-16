@@ -1,20 +1,22 @@
-// index.js
 const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const path = require('path');
 dotenv.config();
 
 const app = express();
 const port = 3000;
 
-// Spotify credentials
+// Set EJS as templating engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 // const clientId = process.env.SPOTIFY_CLIENT_ID;
 // const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 const clientId = "15b25050bac14194961cceac08c00a3f";
 const clientSecret = "8e527048844146c5a1524ace1a93ee30";
 const redirectUri = 'http://localhost:3000/callback';
 
-// Generate a random string for state
 const generateRandomString = length => {
   let text = '';
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -73,7 +75,7 @@ app.get('/create-playlist', async (req, res) => {
   const userId = userIdResponse.data.id;
 
   const playlistResponse = await axios.post(`https://api.spotify.com/v1/users/${userId}/playlists`, {
-    name: 'My Playlist',
+    name: 'testing - playlist w hardcoded songs',
     public: true,
   }, {
     headers: {
@@ -83,7 +85,7 @@ app.get('/create-playlist', async (req, res) => {
   });
 
   const playlistId = playlistResponse.data.id;
-  const tracks = ['Alone Again', 'Too Late', 'Hardest to Love']; // Replace with your actual list of songs
+  const tracks = ['heartless by the weeknd', 'faith weeknd', 'blinding lights']; // Replace with your actual list of songs
 
   const trackUris = await Promise.all(tracks.map(async (track) => {
     const searchResponse = await axios.get(`https://api.spotify.com/v1/search`, {
@@ -109,7 +111,7 @@ app.get('/create-playlist', async (req, res) => {
     },
   });
 
-  res.send(`Playlist created: https://open.spotify.com/playlist/${playlistId}`);
+  res.render('playlist', { playlistUrl: `https://open.spotify.com/embed/playlist/${playlistId}` });
 });
 
 app.listen(port, () => {
