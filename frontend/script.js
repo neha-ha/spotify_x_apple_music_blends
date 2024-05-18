@@ -1,18 +1,20 @@
-const apiKey = '80036787eac16b24d14eba32990f4f82';  // Last.fm API key
-const period = 'overall';  // Fetching period
-const limit = 1000;  // Number of top tracks to fetch for each user
-const blendLimit = 50;  // Number of blended songs to include in the playlist
+const apiKey = '80036787eac16b24d14eba32990f4f82'; // Replace 'YOUR_API_KEY' with your actual Last.fm API key
+const period = 'overall'; // You can change this to '7day', '1month', '3month', '6month', or '12month' as per your requirement
+const limit = 500; // Number of top tracks to fetch for each user
+const blendLimit = 50; // Number of blended songs to include in the playlist
 
 const genreScore = new Map();
 const artistScore = new Map();
 const songPriority = new Map();
 
-// Fetches top songs using Last.fm API: gets song name, artist name, and genre
+// fetches top songs using lastfm api: gets song name, artist name, and genre
 const getUserTopTracks = async (username) => {
     const apiUrl = `https://ws.audioscrobbler.com/2.0/?method=user.gettoptracks&user=${username}&period=${period}&limit=${limit}&api_key=${apiKey}&format=json`;
+
     try {
         const response = await fetch(apiUrl);
         const data = await response.json();
+        console.log(data.toptracks.track);
         const tracksWithGenres = await Promise.all(data.toptracks.track.map(async (track) => {
             const genre = await getTrackTopTags(track.artist.name, track.name);
             return {
@@ -28,141 +30,101 @@ const getUserTopTracks = async (username) => {
     }
 };
 
-// Fetch top tags (genres) for a track
 const getTrackTopTags = async (artist, track) => {
-    const apiUrl2 = `https://ws.audioscrobbler.com/2.0/?method=track.getTopTags&artist=${artist}&track=${track}&api_key=${apiKey}&format=json`;
+    const apiUrl2 = `https://ws.audioscrobbler.com/2.0/?method=track.getTopTags&artist=${artist}&track=${track}&autocorrect[1]&api_key=${apiKey}&format=json`;
     try {
         const response = await fetch(apiUrl2);
         const data = await response.json();
+        console.log(data.toptags);
         return (data.toptags.tag ? data.toptags.tag.map(tag => tag.name) : []);
-    } catch {
+    } catch (error) {
+        // console.error(`Error fetching track tags for track ${track}:`, error);
         return [];
     }
-};
+}
 
-// Update song scores based on user's top tracks
 const updateSongScores = (userSongs) => {
     userSongs.forEach(song => {
-        song.genre.forEach(genre => {
+        // get the genres and score them
+        song.genre = song.genre.slice(0, 10);
+        console.log("genres for", song.name, ":", song.genre);
+        Array.prototype.forEach.call(song.genre, genre => {
             if (genreScore.has(genre)) {
-                genreScore.set(genre, genreScore.get(genre) + 0.5);
+                genreScore.set(genre, genreScore.get(genre) + 0.1);
             } else {
                 genreScore.set(genre, 1);
             }
         });
-
+        // get the artists and score them
         if (artistScore.has(song.artist)) {
             artistScore.set(song.artist, artistScore.get(song.artist) + 3);
         } else {
             artistScore.set(song.artist, 1);
         }
-
+        // get the songs and score them with the artists and genres
         const songKey = `${song.name} - ${song.artist}`;
+        const songIndex = userSongs.indexOf(song);
         if (songPriority.has(songKey)) {
-            songPriority.set(songKey, songPriority.get(songKey) + 5);
+            console.log("already in:", songPriority.get(songKey), (10 * Math.log(limit - songIndex)), 50);
+            songPriority.set(songKey, songPriority.get(songKey) + (10 * Math.log(limit - songIndex)) + 50);
         } else {
-            songPriority.set(songKey, artistScore.get(song.artist) + (song.genre.reduce((totalScore, genre) => totalScore + genreScore.get(genre), 0)) + 1);
+            if (song.genre) {
+                const genresScore = song.genre.reduce((totalScore, genre) => totalScore + genreScore.get(genre), 0);
+                console.log("genre:", Math.log(artistScore.get(song.artist)), genresScore/2, (10 * Math.log(limit - songIndex)))
+                songPriority.set(songKey, Math.log(artistScore.get(song.artist)) + genresScore/2 + (10 * Math.log(limit - songIndex)) + 1);
+            }
+            else {
+                console.log("no genre:", Math.log(artistScore.get(song.artist)), (10 * Math.log(limit - songIndex)))
+                songPriority.set(songKey, Math.log(artistScore.get(song.artist)) + (10 * Math.log(limit - songIndex)) + 1);
+            }
         }
     });
 };
 
-// Blend playlists based on user inputs
+// does the blend using values inputted from html
 const blendPlaylist = async () => {
-    const username1 = document.getElementById("username1").value;
-    const username2 = document.getElementById("username2").value;
+    try {
+        // Get usernames from input fields
+        const username1 = document.getElementById("username1").value;
+        const username2 = document.getElementById("username2").value;
 
-    const [user1TopTracks, user2TopTracks] = await Promise.all([getUserTopTracks(username1), getUserTopTracks(username2)]);
+        // Fetch top tracks for both users
+        const [user1TopTracks, user2TopTracks] = await Promise.all([getUserTopTracks(username1), getUserTopTracks(username2)]);
 
-    updateSongScores(user1TopTracks);
-    updateSongScores(user2TopTracks);
+        // Update song scores for both users
+        updateSongScores(user1TopTracks);
+        updateSongScores(user2TopTracks);
 
-    const sortedSongs = new Map([...songPriority.entries()].sort((a, b) => b[1] - a[1]));
-    const blendedSongs = Array.from(sortedSongs.keys()).slice(0, blendLimit);
+        // Sort genre score and song priority maps
+        const sortedSongs = new Map([...songPriority.entries()].sort((a, b) => b[1] - a[1]));
+        console.log(user1TopTracks);
+        console.log(user2TopTracks);
+        console.log(sortedSongs);
+        console.log(songPriority);
+        //console.log(genreScore);
+        //console.log(artistScore);
 
-    const playlistItems = document.getElementById('playlistItems');
-    playlistItems.innerHTML = '';
+        const sortedGenres = new Map([...genreScore.entries()].sort((a, b) => b[1] - a[1]));
+        console.log(sortedGenres);
+        const sortedArtists = new Map([...artistScore.entries()].sort((a, b) => b[1] - a[1]));
+        console.log(sortedArtists);
 
-    blendedSongs.forEach((song, index) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${index + 1}. ${song}`;
-        playlistItems.appendChild(listItem);
-    });
+        // Get the top blended songs based on song priority
+        const blendedSongs = Array.from(sortedSongs.keys()).slice(0, blendLimit);
+
+        // Update the playlist in the HTML
+        const playlistItems = document.getElementById('playlistItems');
+        playlistItems.innerHTML = ''; // Clear previous playlist items
+
+        blendedSongs.forEach((song, index) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${index + 1}. ${song}`;
+            playlistItems.appendChild(listItem);
+        });
+    } catch (error) {
+        console.error('Error creating blend playlist:', error);
+    }
 };
 
-/************************************************************************
-*
-* I added some functions for the animations. We can put these in another
-* .js file, was just going off your previous code which worked well.
-*
-************************************************************************/
-
-// Error bubble
-function showBubble(message) {
-    const bubble = document.getElementById('bubble');
-    bubble.textContent = message;
-    bubble.style.display = 'block';
-    requestAnimationFrame(() => {bubble.classList.add('show');});
-    setTimeout(() => {bubble.classList.remove('show');
-    setTimeout(() => {bubble.style.display = 'none';}, 500);}, 3000);
-}
-
-// Validate inputs in text box
-function validateInputs() {
-    const username1 = document.getElementById('username1').value.trim();
-    const username2 = document.getElementById('username2').value.trim();
-    const usernameRegex = /^[a-zA-Z0-9_]+$/;
-    if (!username1) {
-        showBubble('Username 1 is required.');
-        return false;
-    }
-    if (!username2) {
-        showBubble('Username 2 is required.');
-        return false;
-    }
-    if (!usernameRegex.test(username1) || !usernameRegex.test(username1)) {
-        showBubble('Username can only contain letters, numbers, and underscores.');
-        return false;
-    }
-    return true;
-}
-
-// Shows spinner
-function showLoader() {
-    document.querySelector('.button-text').style.display = 'none';
-    document.querySelector('.spinner').style.display = 'flex';
-}
-
-// Hides spinner
-function hideLoader() {
-    document.querySelector('.spinner').style.display = 'none';
-    document.querySelector('.button-text').style.display = 'inline-block';
-}
-
-// Shows song list w/ transition
-function showPopup() {
-    const songList = document.getElementById('playlistPopup');
-    songList.classList.add('active');
-}
-
-// Hides song list w/ transition
-function hidePopup() {
-    const songList = document.getElementById('playlistPopup');
-    songList.classList.remove('active');
-}
-
-// Generate button
-document.getElementById('generatePlaylistBtn').addEventListener('click', async () => {
-    if (!validateInputs()) {
-        return;
-    }
-
-    showLoader();
-    await blendPlaylist();
-    hideLoader();
-    showPopup();
-});
-
-// Closes song list
-document.querySelector('.close-btn').addEventListener('click', function() {
-    hidePopup();
-});
+// Attach event listener to the button to trigger blending playlist generation
+document.getElementById('generatePlaylistBtn').addEventListener('click', blendPlaylist);
