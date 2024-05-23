@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<body style="background-color:#454545;"></body>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +9,31 @@
 </head>
 <body>
     <div class="container">
-        <h1>Blend Playlist</h1>
+        <center><h1>Blend Playlist Skibidi</h1></center>
         <div class="form">
             <label for="username1">Username 1:</label>
             <input type="text" id="username1" placeholder="Enter username 1">
             <label for="username2">Username 2:</label>
             <input type="text" id="username2" placeholder="Enter username 2">
-            <button id="generatePlaylistBtn">Generate Playlist</button>
+            <center>
+            <button id="generatePlaylistBtn" onclick="saveAndRedirect()">Generate Playlist</button>
+            </center>
         </div>
         <div id="playlist" class="playlist">
             <ul id="playlistItems"></ul>
         </div>
     </div>
-    <script src="script.js"></script>
+    <script>
+        function saveAndRedirect() {
+            // Get the URLSearchParams object for the current URL
+            var urlParams = new URLSearchParams(window.location.search);
+
+            // Get the access token from the URL
+            var accessToken = urlParams.get('access_token');
+            const name1 = document.getElementById('username1').value;
+            const name2 = document.getElementById('username2').value;
+            window.location.href = 'http://localhost:3000/create-playlist?access_token=' + accessToken + '&user1=' + name1 + '&user2=' + name2;
+        }
+    </script>
 </body>
 </html>

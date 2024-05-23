@@ -82,11 +82,11 @@ const updateSongScores = (userSongs) => {
 };
 
 // does the blend using values inputted from html
-const blendPlaylist = async () => {
+const blendPlaylist = async (username1, username2) => {
     try {
         // Get usernames from input fields
-        const username1 = document.getElementById("username1").value;
-        const username2 = document.getElementById("username2").value;
+        //const username1 = document.getElementById("username1").value;
+        //const username2 = document.getElementById("username2").value;
 
         // Fetch top tracks for both users
         const [user1TopTracks, user2TopTracks] = await Promise.all([getUserTopTracks(username1), getUserTopTracks(username2)]);
@@ -97,22 +97,23 @@ const blendPlaylist = async () => {
 
         // Sort genre score and song priority maps
         const sortedSongs = new Map([...songPriority.entries()].sort((a, b) => b[1] - a[1]));
-        console.log(user1TopTracks);
-        console.log(user2TopTracks);
-        console.log(sortedSongs);
-        console.log(songPriority);
+        //console.log(user1TopTracks);
+        //console.log(user2TopTracks);
+        //console.log(sortedSongs);
+        //console.log(songPriority);
         //console.log(genreScore);
         //console.log(artistScore);
 
         const sortedGenres = new Map([...genreScore.entries()].sort((a, b) => b[1] - a[1]));
-        console.log(sortedGenres);
+        //console.log(sortedGenres);
         const sortedArtists = new Map([...artistScore.entries()].sort((a, b) => b[1] - a[1]));
-        console.log(sortedArtists);
+        //console.log(sortedArtists);
 
         // Get the top blended songs based on song priority
         const blendedSongs = Array.from(sortedSongs.keys()).slice(0, blendLimit);
 
         // Update the playlist in the HTML
+        /*
         const playlistItems = document.getElementById('playlistItems');
         playlistItems.innerHTML = ''; // Clear previous playlist items
 
@@ -121,10 +122,16 @@ const blendPlaylist = async () => {
             listItem.textContent = `${index + 1}. ${song}`;
             playlistItems.appendChild(listItem);
         });
+        */
+       return blendedSongs;
     } catch (error) {
         console.error('Error creating blend playlist:', error);
     }
 };
 
+module.exports = {
+    blendPlaylist
+};
+
 // Attach event listener to the button to trigger blending playlist generation
-document.getElementById('generatePlaylistBtn').addEventListener('click', blendPlaylist);
+//document.getElementById('generatePlaylistBtn').addEventListener('click', blendPlaylist);

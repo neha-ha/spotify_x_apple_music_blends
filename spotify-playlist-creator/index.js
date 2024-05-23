@@ -16,6 +16,7 @@ app.set('views', path.join(__dirname, 'views'));
 const clientId = "15b25050bac14194961cceac08c00a3f";
 const clientSecret = "8e527048844146c5a1524ace1a93ee30";
 const redirectUri = 'http://localhost:3000/callback';
+const algo = require('../frontend/script.js');
 
 const generateRandomString = length => {
   let text = '';
@@ -58,14 +59,21 @@ app.get('/callback', async (req, res) => {
     });
 
     const accessToken = tokenResponse.data.access_token;
-    res.redirect(`/create-playlist?access_token=${accessToken}`);
+    res.redirect(`/home-page?access_token=${accessToken}`);
   } catch (error) {
     res.send('Error retrieving access token');
   }
 });
 
+app.get('/home-page', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+}
+);
+
 app.get('/create-playlist', async (req, res) => {
   const accessToken = req.query.access_token;
+  const username1 = req.query.user1;
+  const username2 = req.query.user2;
   const userIdResponse = await axios.get('https://api.spotify.com/v1/me', {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -85,7 +93,8 @@ app.get('/create-playlist', async (req, res) => {
   });
 
   const playlistId = playlistResponse.data.id;
-  const tracks = ['heartless by the weeknd', 'faith weeknd', 'blinding lights']; // Replace with your actual list of songs
+  //const tracks = ['heartless by the weeknd', 'faith weeknd', 'blinding lights']; // Replace with your actual list of songs
+  const tracks = await algo.blendPlaylist(username1, username2);
 
   const trackUris = await Promise.all(tracks.map(async (track) => {
     const searchResponse = await axios.get(`https://api.spotify.com/v1/search`, {
