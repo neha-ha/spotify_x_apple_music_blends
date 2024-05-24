@@ -70,6 +70,30 @@ app.get('/home-page', (req, res) => {
 }
 );
 
+app.get('/styles.css', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/styles.css'));
+});
+
+app.get('/imgs/amL.png', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/imgs/amL.png'));
+});
+
+app.get('/imgs/B.png', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/imgs/B.png'));
+});
+
+app.get('/imgs/favicon.png', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/imgs/favicon.png'));
+});
+
+app.get('/imgs/Logo.png', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/imgs/Logo.png'));
+});
+app.get('/imgs/sL.png', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/imgs/sL.png'));
+});
+
+
 app.get('/create-playlist', async (req, res) => {
   const accessToken = req.query.access_token;
   const username1 = req.query.user1;
