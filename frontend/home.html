@@ -20,7 +20,7 @@
         <input type="text" id="username1" placeholder="Enter Username 1">
         <label for="username2">Username 2</label>
         <input type="text" id="username2" placeholder="Enter Username 2">
-        <button id="generatePlaylistBtn">
+        <button id="generatePlaylistBtn" onclick="saveAndRedirect()">
             <span class="button-text">Generate</span>
             <div class="spinner" style="display: none;">
                 <div class="spinner-icon"></div>
@@ -33,9 +33,20 @@
         <ul id="playlistItems"></ul>
     </div>     
     <div class="about">
-        <img src="imgs/Logo.png" alt="Logo" style="height: 100px;">
+        <img src="./imgs/Logo.png" alt="Logo" style="height: 100px;">
         <p>Bringing cross-platform blends to everyone.</p>
     </div>
-<script src="script.js"></script>
+    <script>
+        function saveAndRedirect() {
+            // Get the URLSearchParams object for the current URL
+            var urlParams = new URLSearchParams(window.location.search);
+
+            // Get the access token from the URL
+            var accessToken = urlParams.get('access_token');
+            const name1 = document.getElementById('username1').value;
+            const name2 = document.getElementById('username2').value;
+            window.location.href = 'http://localhost:3000/create-playlist?access_token=' + accessToken + '&user1=' + name1 + '&user2=' + name2;
+        }
+    </script>
 </body>
 </html>

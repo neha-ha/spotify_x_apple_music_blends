@@ -66,7 +66,7 @@ app.get('/callback', async (req, res) => {
 });
 
 app.get('/home-page', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/home.html'));
 }
 );
 
