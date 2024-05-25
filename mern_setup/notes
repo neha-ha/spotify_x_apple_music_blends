@@ -1,7 +1,0 @@
-basic setup using this verbatim pretty much.. https://www.mongodb.com/languages/mern-stack-tutorial
-
-to start server: cd into server and run
-node --env-file=config.env server
-
-to run client side: cd into client and run
-npm run dev
