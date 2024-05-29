@@ -20,7 +20,8 @@ const getUserTopTracks = async (username) => {
             return {
                 name: track.name,
                 artist: track.artist.name,
-                genre: genre
+                genre: genre,
+                username: username
             };
         }));
         return tracksWithGenres;
@@ -43,11 +44,32 @@ const getTrackTopTags = async (artist, track) => {
     }
 }
 
-const updateSongScores = (userSongs) => {
+const updateSongScores = (userSongs, username) => { 
+    userSongs.forEach(song => { // get the songs and score them with the artists and genres
+        const songKey = `${song.name} - ${song.artist}`;
+        const songIndex = userSongs.indexOf(song);
+        if (songPriority.has(songKey)) {
+            console.log("already in:", songPriority.get(songKey));
+            songPriority.set(songKey, [songPriority.get(songKey)[0] + (10 * Math.log(limit - songIndex)) + 50, songPriority.get(songKey)[1]]);
+            songPriority.get(songKey)[1].push(username);
+        } else {
+            if (song.genre) {
+                const genresScore = song.genre.reduce((totalScore, genre) => totalScore + genreScore.get(genre), 0);
+                console.log("genre:", Math.log(artistScore.get(song.artist)), genresScore/2, (10 * Math.log(limit - songIndex)))
+                songPriority.set(songKey, [Math.log(artistScore.get(song.artist)) + genresScore/2 + (10 * Math.log(limit - songIndex)) + 1, [username]]);
+            }
+            else {
+                console.log("no genre:", Math.log(artistScore.get(song.artist)), (10 * Math.log(limit - songIndex)))
+                songPriority.set(songKey, [Math.log(artistScore.get(song.artist)) + (10 * Math.log(limit - songIndex)) + 1, [username]]);
+            }
+        }
+    });
+};
+
+const updateArtistScores = (userSongs) => { // get the genres and score them
     userSongs.forEach(song => {
-        // get the genres and score them
         song.genre = song.genre.slice(0, 10);
-        console.log("genres for", song.name, ":", song.genre);
+        //console.log("genres for", song.name, ":", song.genre);
         Array.prototype.forEach.call(song.genre, genre => {
             if (genreScore.has(genre)) {
                 genreScore.set(genre, genreScore.get(genre) + 0.1);
@@ -55,28 +77,15 @@ const updateSongScores = (userSongs) => {
                 genreScore.set(genre, 1);
             }
         });
-        // get the artists and score them
+    });
+};
+
+const updateGenreScores = (userSongs) => { // get the artists and score them
+    userSongs.forEach(song => {
         if (artistScore.has(song.artist)) {
             artistScore.set(song.artist, artistScore.get(song.artist) + 3);
         } else {
             artistScore.set(song.artist, 1);
-        }
-        // get the songs and score them with the artists and genres
-        const songKey = `${song.name} - ${song.artist}`;
-        const songIndex = userSongs.indexOf(song);
-        if (songPriority.has(songKey)) {
-            console.log("already in:", songPriority.get(songKey), (10 * Math.log(limit - songIndex)), 50);
-            songPriority.set(songKey, songPriority.get(songKey) + (10 * Math.log(limit - songIndex)) + 50);
-        } else {
-            if (song.genre) {
-                const genresScore = song.genre.reduce((totalScore, genre) => totalScore + genreScore.get(genre), 0);
-                console.log("genre:", Math.log(artistScore.get(song.artist)), genresScore/2, (10 * Math.log(limit - songIndex)))
-                songPriority.set(songKey, Math.log(artistScore.get(song.artist)) + genresScore/2 + (10 * Math.log(limit - songIndex)) + 1);
-            }
-            else {
-                console.log("no genre:", Math.log(artistScore.get(song.artist)), (10 * Math.log(limit - songIndex)))
-                songPriority.set(songKey, Math.log(artistScore.get(song.artist)) + (10 * Math.log(limit - songIndex)) + 1);
-            }
         }
     });
 };
@@ -92,11 +101,15 @@ const blendPlaylist = async (username1, username2) => {
         const [user1TopTracks, user2TopTracks] = await Promise.all([getUserTopTracks(username1), getUserTopTracks(username2)]);
 
         // Update song scores for both users
-        updateSongScores(user1TopTracks);
-        updateSongScores(user2TopTracks);
+        updateArtistScores(user1TopTracks);
+        updateArtistScores(user2TopTracks);
+        updateGenreScores(user1TopTracks);
+        updateGenreScores(user2TopTracks);
+        updateSongScores(user1TopTracks, username1);
+        updateSongScores(user2TopTracks, username2);
 
         // Sort genre score and song priority maps
-        const sortedSongs = new Map([...songPriority.entries()].sort((a, b) => b[1] - a[1]));
+        const sortedSongs = new Map([...songPriority.entries()].sort((a, b) => b[1][0] - a[1][0]));
         //console.log(user1TopTracks);
         //console.log(user2TopTracks);
         //console.log(sortedSongs);
