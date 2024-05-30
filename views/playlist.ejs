@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blended Playlist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/playlist.css">
+</head>
+<body>
+    <h1>Your Blended Playlist</h1>
+    <div id="content">
+        <div id="playlist-container">
+            <div id="volume-control">
+                <label for="volume">Volume:</label>
+                <input type="range" id="volume" name="volume" min="0" max="1" step="0.01" value="0.5">
+            </div>
+            <ul id="playlist">
+                <% blendedSongs.forEach(song => { %>
+                    <li class="song">
+                        <p><%= song.name %> by <%= song.artist %></p>
+                        <div class="song-controls">
+                            <button onclick="playTrack(this, '<%= song.uri %>')">&#9654;</button>
+                        </div>
+                    </li>
+                <% }); %>
+            </ul>
+        </div>
+        <div id="embed-container">
+            <iframe src="<%= playlistUrl %>" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            <a id="spotify-link" href="<%= playlistUrl.replace('embed/', '') %>" target="_blank">Open in Spotify</a>
+        </div>
+    </div>
+    <script>
+        const accessToken = '<%= accessToken %>';
+    </script>
+    <script src="/js/playlist.js"></script>     
+</body>
+</html>
