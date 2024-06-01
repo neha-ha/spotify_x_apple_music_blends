@@ -96,8 +96,8 @@ app.get('/imgs/sL.png', (req, res) => {
 
 app.get('/create-playlist', async (req, res) => {
   const accessToken = req.query.access_token;
-  const username1 = req.query.user1;
-  const username2 = req.query.user2;
+  // const username1 = req.query.user1;
+  // const username2 = req.query.user2;
   const userIdResponse = await axios.get('https://api.spotify.com/v1/me', {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -118,7 +118,7 @@ app.get('/create-playlist', async (req, res) => {
 
   const playlistId = playlistResponse.data.id;
   //const tracks = ['heartless by the weeknd', 'faith weeknd', 'blinding lights']; // Replace with your actual list of songs
-  const tracks = await algo.blendPlaylist(username1, username2);
+  const tracks = await algo.blendPlaylist(req.query.user1, req.query.user2);
 
   const trackUris = await Promise.all(tracks.map(async (track) => {
     const searchResponse = await axios.get(`https://api.spotify.com/v1/search`, {
