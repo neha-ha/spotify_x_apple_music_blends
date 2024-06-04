@@ -66,10 +66,9 @@ const updateSongScores = (userSongs, username) => {
     });
 };
 
-const updateArtistScores = (userSongs) => { // get the genres and score them
+const updateGenreScores = (userSongs) => { // get the genres and score them
     userSongs.forEach(song => {
         song.genre = song.genre.slice(0, 10);
-        //console.log("genres for", song.name, ":", song.genre);
         Array.prototype.forEach.call(song.genre, genre => {
             if (genreScore.has(genre)) {
                 genreScore.set(genre, genreScore.get(genre) + 0.1);
@@ -80,12 +79,29 @@ const updateArtistScores = (userSongs) => { // get the genres and score them
     });
 };
 
-const updateGenreScores = (userSongs) => { // get the artists and score them
+const updateArtistScores = (userSongs) => { // get the artists and score them
     userSongs.forEach(song => {
         if (artistScore.has(song.artist)) {
-            artistScore.set(song.artist, artistScore.get(song.artist) + 3);
+            artistScore.set(song.artist, artistScore.get(song.artist) + 2);
         } else {
             artistScore.set(song.artist, 1);
+        }
+    });
+};
+
+const reduceRepeats = (songs) => {
+    const artistCount = new Map();
+    songs.forEach(song => {
+        if (artistCount[song.artist]) {
+            if (artistCount[song.artist] > blendLimit * .3) {
+                artistScore.set(song.artist, artistScore.get(song.artist) + 1);
+            }
+            else {
+                song[1][0] -= 50;
+            }
+        }
+        else {
+            artistCount.set(song.artist, 1);
         }
     });
 };
@@ -110,6 +126,18 @@ const blendPlaylist = async (username1, username2) => {
 
         // Sort genre score and song priority maps
         const sortedSongs = new Map([...songPriority.entries()].sort((a, b) => b[1][0] - a[1][0]));
+        reduceRepeats(sortedSongs);
+        const sortedSongs2 = new Map([...sortedSongs.entries()].sort((a, b) => b[1][0] - a[1][0]));
+        
+        // Get the top blended songs based on song priority
+        const blendedSongs = Array.from(sortedSongs2.keys()).slice(0, blendLimit);
+
+        // Shuffle the blend to make it a lil more random
+        const shuffledSongs = blendedSongs
+            .map(value => ({ value, sort: Math.random() }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ value }) => value)
+
         //console.log(user1TopTracks);
         //console.log(user2TopTracks);
         //console.log(sortedSongs);
@@ -118,12 +146,12 @@ const blendPlaylist = async (username1, username2) => {
         //console.log(artistScore);
 
         const sortedGenres = new Map([...genreScore.entries()].sort((a, b) => b[1] - a[1]));
-        //console.log(sortedGenres);
+        console.log(sortedGenres);
         const sortedArtists = new Map([...artistScore.entries()].sort((a, b) => b[1] - a[1]));
-        //console.log(sortedArtists);
+        console.log(sortedArtists);
+        console.log(shuffledSongs);
 
-        // Get the top blended songs based on song priority
-        const blendedSongs = Array.from(sortedSongs.keys()).slice(0, blendLimit);
+        
 
         // Update the playlist in the HTML
         /*
@@ -136,7 +164,7 @@ const blendPlaylist = async (username1, username2) => {
             playlistItems.appendChild(listItem);
         });
         */
-       return blendedSongs;
+       return shuffledSongs;
     } catch (error) {
         console.error('Error creating blend playlist:', error);
     }
