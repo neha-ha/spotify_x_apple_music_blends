@@ -90,22 +90,44 @@ const updateArtistScores = (userSongs) => { // get the artists and score them
 };
 
 const reduceRepeats = (songs) => {
-    console.log('artist score prior ', artistScore)
+    
+    // create a map to track the number of times an artist has appeared
     const artistCount = new Map();
-    songs.forEach(song => {
-        if (artistCount.has(song.artist)) {
-            if (artistCount.get(song.artist) > blendLimit * .3) {
-                artistScore.set(song.artist, artistScore.get(song.artist) + 1);
-            }
-            else {
-                song[0] -= 50;
-            }
+
+    // songs refers to the sorted songs list passed in
+    // looks like this
+    //'Heartless - The Weeknd' => [ 214.76510534665704, [ 'kisslandxo', 'kisslandxo' ] ],
+    //'Reminder - The Weeknd' => [ 112.85524878555142, [ 'kisslandxo', 'kisslandxo' ] ],
+
+    // loop through each value, key in the map
+    songs.forEach((score, songTitle) => {
+        console.log("song ", songTitle);
+
+        // get artist name from song title
+        const parts = songTitle.split(' - '); // i.e. parts = ['Heartless', 'The Weeknd']
+        const artist = parts[1]; 
+
+        if (artistCount.has(artist)) {
+            // add 1 to the count if there
+            artistCount.set(artist, artistCount.get(artist) + 1);
         }
         else {
-            artistCount.set(song.artist, 1);
+            // otherwise start w 1
+            artistCount.set(artist, 1);
         }
+
+        // if artist has already appeared more than 10 times, set score of that song to 0 so it is not included in the blend
+        if (artistCount.get(artist) > 10) {
+            const score_zeroed = score;
+            score_zeroed[0] = 0;
+            songs.set(songTitle, score_zeroed);
+        }
+
+        
     });
-    console.log('reduce repeats artist counts', artistCount)
+
+    console.log('artist counts ', artistCount);
+
 };
 
 // const reduceRepeats = (songs) => {
