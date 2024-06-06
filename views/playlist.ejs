@@ -19,6 +19,7 @@
                 <% blendedSongs.forEach(song => { %>
                     <li class="song">
                         <p><%= song.name %> by <%= song.artist %></p>
+                        <img src = "<% song.img %>" alt = "Profile Picture">
                         <div class="song-controls">
                             <button onclick="playTrack(this, '<%= song.uri %>')">&#9654;</button>
                         </div>
