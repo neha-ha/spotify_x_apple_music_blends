@@ -87,7 +87,7 @@ app.get('/create-playlist', async (req, res) => {
     });
     const userId = userIdResponse.data.id;
     const playlistResponse = await axios.post(`https://api.spotify.com/v1/users/${userId}/playlists`, {
-        name: 'Blended Playlist',
+        name: `${username1} and ${username2}'s Blend`,
         public: true,
     }, {
         headers: {
@@ -108,11 +108,18 @@ app.get('/create-playlist', async (req, res) => {
                 'Authorization': `Bearer ${accessToken}`,
             },
         });
-
+        
+        // console.log('track', track);
+        // console.log(track.name);
+        // console.log(track.artist);
+        
         return {
             uri: searchResponse.data.tracks.items[0].uri,
             name: track.name,
-            artist: track.artist
+            artist: track.artist,
+            users: track.user,
+            profiles: track.img
+
         };
     }));
     await axios.post(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
@@ -126,7 +133,9 @@ app.get('/create-playlist', async (req, res) => {
     res.render('playlist', {
         playlistUrl: `https://open.spotify.com/embed/playlist/${playlistId}`,
         blendedSongs: trackUris,
-        accessToken: accessToken
+        accessToken: accessToken, 
+        user1: username1,
+        user2: username2
     });
 });
 

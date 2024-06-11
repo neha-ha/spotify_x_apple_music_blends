@@ -3,12 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--- adding back button redirect to prevent crashing -->
+    <script>
+        window.addEventListener('popstate', function(event) {
+            // Redirect to the desired URL when the back button is pressed
+            console.log("redirected popstate");
+            window.location.href = 'http://localhost:3000/login';
+        });
+
+        // Push a state to the history to ensure the popstate event is triggered
+        console.log("popstate pushed");
+        history.pushState(null, null, window.location.href);
+    </script>
+
     <title>Blended Playlist</title>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/playlist.css">
 </head>
 <body>
-    <h1>Your Blended Playlist</h1>
+    <h1> <%= user1 %> and <%= user2 %>'s Blended Playlist</h1>
     <div id="content">
         <div id="playlist-container">
             <div id="volume-control">
@@ -17,9 +31,13 @@
             </div>
             <ul id="playlist">
                 <% blendedSongs.forEach(song => { %>
+                    <!-- <% console.log(song); %> -->
                     <li class="song">
                         <p><%= song.name %> by <%= song.artist %></p>
-                        <img src = "<% song.img %>" alt = "Profile Picture">
+                        <img src = "<%= song.profiles[0] %>" alt = "Profile Picture" width = "25" style = "margin-left: 3px;">
+                        <% if (song.profiles[1]) { %>
+                            <img src = "<%= song.profiles[1] %>" alt = "Profile Picture" width = "25" style = "margin-left: 3px;">
+                        <% } %>
                         <div class="song-controls">
                             <button onclick="playTrack(this, '<%= song.uri %>')">&#9654;</button>
                         </div>
@@ -30,6 +48,12 @@
         <div id="embed-container">
             <iframe src="<%= playlistUrl %>" width="300" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
             <a id="spotify-link" href="<%= playlistUrl.replace('embed/', '') %>" target="_blank">Open in Spotify</a>
+
+            <button2 id="go_back" onclick="window.location.href='http://localhost:3000/login'">
+                <span class="button-text">Generate another Blend</span>
+                </div>
+            </button2>
+
         </div>
     </div>
     <script>

@@ -12,7 +12,7 @@
     <div class="banner">
         <div class="banner-content">
             <h1>Blend Maker</h1>
-            <p>Enter usernames to create a Blend!</p>
+            <p>Enter last.fm usernames to create a Blend!</p>
         </div>
     </div>    
     <div class="main-content">
@@ -27,11 +27,22 @@
             </div>
         </button>
     </div>
-    <div id="bubble" class="bubble"></div>
+    <div id="bubble" class="bubble"></div>   
     <div class="about">
-        <img src="/imgs/Logo.png" alt="Logo" style="height: 100px;">
+        <img src="./imgs/Logo.png" alt="Logo" style="height: 100px;">
         <p>Bringing cross-platform blends to everyone.</p>
     </div>
-    <script src="/js/home.js"></script> 
+    <script>
+        function saveAndRedirect() {
+            // Get the URLSearchParams object for the current URL
+            var urlParams = new URLSearchParams(window.location.search);
+
+            // Get the access token from the URL
+            var accessToken = urlParams.get('access_token');
+            const name1 = document.getElementById('username1').value;
+            const name2 = document.getElementById('username2').value;
+            window.location.href = 'http://localhost:3000/create-playlist?access_token=' + accessToken + '&user1=' + name1 + '&user2=' + name2;
+        }
+    </script>
 </body>
 </html>

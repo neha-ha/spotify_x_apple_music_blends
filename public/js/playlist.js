@@ -61,3 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+window.addEventListener('popstate', function(event) {
+    // Redirect to the desired URL when the back button is pressed
+    console.log("redirected popstate");
+    history.pushState(null, null, 'http://localhost:3000/login');
+    window.location.href = 'http://localhost:3000/login';
+});

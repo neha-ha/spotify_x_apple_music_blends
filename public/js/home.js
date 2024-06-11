@@ -34,6 +34,12 @@ function showLoader() {
     document.querySelector('.spinner').style.display = 'flex';
 }
 
+// hide spinner
+function hideLoader() {
+    document.querySelector('.button-text').style.display = 'block';
+    document.querySelector('.spinner').style.display = 'none';
+}
+
 // Generate button
 document.getElementById('generatePlaylistBtn').addEventListener('click', async () => {
     if (!validateInputs()) {
@@ -42,8 +48,10 @@ document.getElementById('generatePlaylistBtn').addEventListener('click', async (
     showLoader();
     await blendPlaylist();
     hideLoader();
+    console.log("loader hid");
     showPopup();
 });
+
 
 function saveAndRedirect() {
     if (!validateInputs()) {
@@ -53,5 +61,12 @@ function saveAndRedirect() {
     var accessToken = urlParams.get('access_token');
     const name1 = document.getElementById('username1').value;
     const name2 = document.getElementById('username2').value;
+    hideLoader();
+
+    const url = 'http://localhost:3000/create-playlist?access_token=' + accessToken + '&user1=' + name1 + '&user2=' + name2;
+    history.pushState(null, '', url);
+
     window.location.href = 'http://localhost:3000/create-playlist?access_token=' + accessToken + '&user1=' + name1 + '&user2=' + name2;
+    
 }
+
