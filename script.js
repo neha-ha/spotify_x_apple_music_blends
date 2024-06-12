@@ -196,26 +196,26 @@ const blendPlaylist = async (username1, username2) => {
             }
             if (song_in_user1 == undefined) {
                 const song = song_in_user2;
-                song.user = [song.user];
-                song.img = [song.img];
+                const song.user = [song.user];
+                const song.img = [song.img];
                 return song;
             }
             else if (song_in_user2 == undefined) {
                 const song = song_in_user1;
-                song.user = [song.user];
-                song.img = [song.img];
+                const song.user = [song.user];
+                const song.img = [song.img];
                 return song;
             }
             else { //both are defined
                 const song = song_in_user1; 
 
                 // based on the blend logic, if a song is here, it's probably decently high up in both the user's top tracks 
-                console.log(song);
-                console.log("user 1 index ", song_in_user1_index);
-                console.log("user 2 index ", song_in_user2_index);
+                //console.log(song);
+                //console.log("user 1 index ", song_in_user1_index);
+                //console.log("user 2 index ", song_in_user2_index);
 
-                songUsers = [song_in_user1.user, song_in_user2.user];
-                songPfps = [song_in_user1.img, song_in_user2.img];
+                const songUsers = [song_in_user1.user, song_in_user2.user];
+                let songPfps = [song_in_user1.img, song_in_user2.img];
 
                 if (song_in_user1_index < song_in_user2_index) {
                     songPfps = [song_in_user2.img, song_in_user1.img];
