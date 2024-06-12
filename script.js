@@ -196,14 +196,14 @@ const blendPlaylist = async (username1, username2) => {
             }
             if (song_in_user1 == undefined) {
                 const song = song_in_user2;
-                const song.user = [song.user];
-                const song.img = [song.img];
+                song.user = [song.user];
+                song.img = [song.img];
                 return song;
             }
             else if (song_in_user2 == undefined) {
                 const song = song_in_user1;
-                const song.user = [song.user];
-                const song.img = [song.img];
+                song.user = [song.user];
+                song.img = [song.img];
                 return song;
             }
             else { //both are defined
